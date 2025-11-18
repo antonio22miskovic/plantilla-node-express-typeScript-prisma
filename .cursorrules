@@ -1,0 +1,263 @@
+# 🎯 Guía de Arquitectura y Patrones - Plantilla Backend Express + TypeScript
+
+Esta plantilla sigue una **Arquitectura en Capas (Layered Architecture)** también conocida como **Controller-Service-Repository Pattern**.
+
+## 📐 Arquitectura del Proyecto
+
+### Flujo de Datos
+```
+HTTP Request → Routes → Middleware → Controller → Service → Repository → Database
+```
+
+### Estructura de Carpetas
+```
+src/
+├── config/          # Configuraciones (Prisma, JWT, env)
+├── controllers/     # Controladores HTTP (manejan req/res)
+├── services/        # Lógica de negocio (reglas de negocio)
+├── repositories/    # Acceso a datos (queries Prisma)
+├── models/          # Tipos TypeScript, DTOs, interfaces
+├── routes/          # Definición de rutas (solo routing)
+├── middleware/      # Middlewares (auth, error handling)
+├── utils/           # Utilidades y helpers
+├── types/           # Tipos globales TypeScript
+├── constants/       # Constantes (mensajes, códigos)
+└── server.ts        # Punto de entrada
+```
+
+## 🔄 Patrón de Trabajo
+
+### 1. Crear una Nueva Feature (Ejemplo: Productos)
+
+#### Paso 1: Definir el Modelo en Prisma
+```prisma
+// prisma/schema.prisma
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+#### Paso 2: Crear Migración
+```bash
+npm run prisma:migrate
+# Nombre: create_product_table
+```
+
+#### Paso 3: Crear Tipos/Modelos
+```typescript
+// src/models/Product.model.ts
+export interface CreateProductInput {
+  name: string
+  price: number
+}
+```
+
+#### Paso 4: Crear Repository
+```typescript
+// src/repositories/Product.repository.ts
+export class ProductRepository {
+  async findAll() { ... }
+  async create(data: CreateProductInput) { ... }
+}
+```
+
+#### Paso 5: Crear Service
+```typescript
+// src/services/Product.service.ts
+export class ProductService {
+  async getAllProducts() { ... }
+  async createProduct(data: CreateProductInput) { ... }
+}
+```
+
+#### Paso 6: Crear Controller
+```typescript
+// src/controllers/Product.controller.ts
+export class ProductController {
+  async getAll(req: Request, res: Response) { ... }
+  async create(req: Request, res: Response) { ... }
+}
+```
+
+#### Paso 7: Crear Rutas
+```typescript
+// src/routes/products.ts
+router.get('/', controller.getAll.bind(controller))
+router.post('/', authenticate, controller.create.bind(controller))
+```
+
+#### Paso 8: Registrar Rutas en server.ts
+```typescript
+app.use('/api/v1/products', productRouter)
+```
+
+#### Paso 9: Agregar a la Colección de Postman
+1. Abre `docs/api/back-end.postman_collection.json` en Postman
+2. Agrega las nuevas requests en la carpeta correspondiente
+3. Configura método, URL, headers y body según la ruta
+4. Exporta y reemplaza el archivo JSON
+5. Ver `docs/api/README.md` para más detalles
+
+## 📋 Reglas de las Capas
+
+### Routes
+- ✅ Solo define endpoints y conecta con controllers
+- ❌ NO contiene lógica de negocio
+- ❌ NO accede a la base de datos
+
+### Controllers
+- ✅ Recibe req/res, extrae datos, llama a Services
+- ✅ Formatea respuestas HTTP
+- ❌ NO contiene lógica de negocio
+- ❌ NO accede directamente a la base de datos
+
+### Services
+- ✅ Contiene toda la lógica de negocio
+- ✅ Valida datos de entrada
+- ✅ Orquesta operaciones entre repositories
+- ❌ NO conoce detalles de HTTP (req/res)
+- ❌ NO accede directamente a la base de datos
+
+### Repositories
+- ✅ Ejecuta queries de Prisma
+- ✅ Abstrae acceso a la base de datos
+- ❌ NO contiene lógica de negocio
+- ❌ NO valida datos (eso es del Service)
+
+## 🔐 Autenticación
+
+### Rutas Protegidas
+```typescript
+import { authenticate } from '../middleware/auth.middleware'
+
+router.post('/protected', authenticate, controller.create)
+```
+
+### Obtener Usuario Autenticado
+```typescript
+const userId = (req as AuthenticatedRequest).user?.id
+```
+
+## 🗄️ Base de Datos
+
+### Crear Nueva Tabla
+1. Agregar modelo en `prisma/schema.prisma`
+2. Ejecutar: `npm run prisma:migrate`
+3. Nombre descriptivo: `create_product_table`
+
+### Modificar Tabla Existente
+1. Modificar modelo en `prisma/schema.prisma`
+2. Ejecutar: `npm run prisma:migrate`
+3. Nombre descriptivo: `add_price_to_product`
+
+## 📝 Convenciones de Código
+
+### Nombres de Archivos
+- Controllers: `*.controller.ts`
+- Services: `*.service.ts`
+- Repositories: `*.repository.ts`
+- Models: `*.model.ts`
+
+### Idioma de Mensajes
+- **TODOS** los mensajes de respuesta de la API deben estar en **ESPAÑOL**
+- Esto incluye:
+  - Mensajes en `constants/index.ts` (HTTP_MESSAGES)
+  - Mensajes hardcodeados en controllers
+  - Mensajes de error en services
+  - Mensajes en middlewares (auth, error, etc.)
+  - Mensajes de validación
+- Los mensajes deben ser claros, profesionales y en español neutro
+
+### Estructura de Respuestas API
+```typescript
+{
+  success: true | false,
+  message: "Operación completada exitosamente",
+  data: { ... },
+  error?: "..."
+}
+```
+
+**IMPORTANTE:** Todos los mensajes de respuesta (message y error) deben estar en **ESPAÑOL**.
+
+### Manejo de Errores
+- Services lanzan errores con `statusCode`
+- Controllers capturan y formatean respuestas HTTP
+- Error middleware maneja errores no capturados
+
+## 🚀 Comandos Útiles
+
+```bash
+# Desarrollo
+npm run dev                    # Iniciar servidor
+npm run prisma:migrate         # Crear y aplicar migración
+npm run prisma:studio          # Abrir Prisma Studio
+npm run prisma:generate        # Regenerar Prisma Client
+
+# Producción
+npm run prisma:migrate:deploy  # Aplicar migraciones pendientes
+```
+
+## 📮 Colección de Postman
+
+### Mantener la Colección Actualizada
+
+**IMPORTANTE:** Cuando crees una nueva API, DEBES agregarla a la colección de Postman.
+
+1. **Ubicación**: `docs/api/back-end.postman_collection.json`
+
+2. **Al crear una nueva ruta**:
+   - Abre la colección en Postman
+   - Agrega la nueva request en la carpeta correspondiente (Auth, Users, etc.)
+   - Configura:
+     - Método HTTP (GET, POST, PUT, DELETE)
+     - URL: `{{base_url}}/api/v1/[ruta]`
+     - Headers: `Authorization: Bearer {{access_token}}` si requiere autenticación
+     - Body: Ejemplo JSON con los campos requeridos
+     - Description: Documentación del endpoint
+   - Si es login/register/refresh, agrega Tests para guardar tokens automáticamente
+   - Exporta y reemplaza el archivo JSON
+
+3. **Estructura de la colección**:
+   ```
+   Backend Express + TypeScript
+   ├── Health Check
+   ├── Authentication
+   │   ├── Register
+   │   ├── Login
+   │   ├── Refresh Token
+   │   └── ...
+   ├── Users
+   │   ├── Get All Users
+   │   ├── Get User By ID
+   │   └── ...
+   └── [Nuevas categorías según necesites]
+   ```
+
+4. **Variables de la colección**:
+   - `base_url`: http://localhost:3000
+   - `access_token`: Se actualiza automáticamente
+   - `refresh_token`: Se actualiza automáticamente
+
+5. **Ver documentación**: `docs/api/README.md`
+
+## 📚 Documentación Adicional
+
+- `docs/architecture.md` - Documentación completa de arquitectura
+- `docs/prisma/migrations.md` - Guía de migraciones
+- `docs/auth/api-examples.md` - Ejemplos de API de autenticación
+- `docs/api/README.md` - Guía de uso de la colección de Postman
+- `README.md` - Guía de inicio rápido
+
+## ⚠️ Importante
+
+- **SIEMPRE** modifica `schema.prisma` antes de crear migraciones
+- **NUNCA** edites manualmente archivos en `prisma/migrations/`
+- **USA** `migrate deploy` en producción, NO `migrate dev`
+- **MANTÉN** separación clara de responsabilidades entre capas
+- **ACTUALIZA** la colección de Postman cuando agregues nuevas APIs
+

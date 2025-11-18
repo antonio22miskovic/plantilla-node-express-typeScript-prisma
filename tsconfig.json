@@ -1,0 +1,215 @@
+{
+  /**
+   * TypeScript Configuration File
+   * 
+   * Este archivo configura el compilador de TypeScript para el proyecto.
+   * Ajusta estas opciones según las necesidades específicas de tu proyecto.
+   * 
+   * Documentación completa: https://www.typescriptlang.org/tsconfig
+   */
+  "compilerOptions": {
+    // ============================================
+    // CONFIGURACIÓN DE ARCHIVOS Y DIRECTORIOS
+    // ============================================
+    
+    /**
+     * rootDir: Directorio raíz del código fuente TypeScript
+     * Todos los archivos TypeScript deben estar dentro de este directorio
+     */
+    "rootDir": "./src",
+    
+    /**
+     * outDir: Directorio donde se generarán los archivos JavaScript compilados
+     * Los archivos mantendrán la misma estructura de carpetas que en rootDir
+     */
+    "outDir": "./dist",
+
+    // ============================================
+    // CONFIGURACIÓN DEL ENTORNO Y MÓDULOS
+    // ============================================
+    
+    /**
+     * module: Sistema de módulos a usar
+     * - "ESNext": Usa la sintaxis de módulos ES más reciente (import/export)
+     * - Alternativas: "CommonJS", "AMD", "UMD", "System"
+     */
+    "module": "ESNext",
+    
+    /**
+     * target: Versión de JavaScript a la que se compilará el código
+     * - "ES2022": Usa características de ES2022 (async/await, optional chaining, etc)
+     * - Asegúrate de que Node.js soporte esta versión
+     */
+    "target": "ES2022",
+    
+    /**
+     * lib: Librerías estándar de TypeScript a incluir
+     * - "ES2022": Incluye tipos para características de ES2022
+     * - Puedes agregar: "DOM" si trabajas con navegadores
+     */
+    "lib": ["ES2022"],
+    
+    /**
+     * types: Tipos globales a incluir
+     * - "node": Incluye tipos para Node.js (process, Buffer, etc)
+     * - Si está vacío [], solo se incluyen tipos explícitamente importados
+     */
+    "types": ["node"],
+
+    // ============================================
+    // RESOLUCIÓN DE MÓDULOS
+    // ============================================
+    
+    /**
+     * moduleResolution: Estrategia para resolver módulos
+     * - "node": Usa la estrategia de Node.js (busca en node_modules, etc)
+     * - Es la opción estándar para proyectos Node.js
+     */
+    "moduleResolution": "node",
+    
+    /**
+     * esModuleInterop: Permite importar módulos CommonJS como módulos ES
+     * - true: Permite importar módulos antiguos con sintaxis moderna
+     * - Ejemplo: import express from 'express' (en lugar de import * as express)
+     */
+    "esModuleInterop": true,
+    
+    /**
+     * allowSyntheticDefaultImports: Permite importaciones por defecto sintéticas
+     * - true: Permite importar módulos sin export default como si lo tuvieran
+     * - Va de la mano con esModuleInterop
+     */
+    "allowSyntheticDefaultImports": true,
+    
+    /**
+     * resolveJsonModule: Permite importar archivos JSON como módulos
+     * - true: Puedes hacer import config from './config.json'
+     */
+    "resolveJsonModule": true,
+
+    // ============================================
+    // ARCHIVOS DE SALIDA
+    // ============================================
+    
+    /**
+     * sourceMap: Genera archivos .map para debugging
+     * - true: Permite debuggear el código TypeScript original en lugar del JS compilado
+     */
+    "sourceMap": true,
+    
+    /**
+     * declaration: Genera archivos .d.ts (definiciones de tipos)
+     * - true: Útil si tu proyecto será usado como librería por otros proyectos
+     */
+    "declaration": true,
+    
+    /**
+     * declarationMap: Genera source maps para los archivos .d.ts
+     * - true: Permite navegar desde tipos a su código fuente original
+     */
+    "declarationMap": true,
+
+    // ============================================
+    // OPCIONES ESTRICTAS DE VERIFICACIÓN DE TIPOS
+    // ============================================
+    
+    /**
+     * noUncheckedIndexedAccess: Los índices de arrays/objetos pueden ser undefined
+     * - true: array[0] tiene tipo T | undefined (más seguro)
+     * - false: array[0] tiene tipo T (menos seguro pero más conveniente)
+     */
+    "noUncheckedIndexedAccess": true,
+    
+    /**
+     * exactOptionalPropertyTypes: Los opcionales deben ser exactamente el tipo o undefined
+     * - true: { prop?: string } no acepta null, solo string | undefined
+     * - false: { prop?: string } acepta string | null | undefined
+     */
+    "exactOptionalPropertyTypes": true,
+
+    // ============================================
+    // OPCIONES DE ESTILO Y CALIDAD DE CÓDIGO
+    // ============================================
+    
+    /**
+     * noImplicitReturns: Todas las rutas de código deben retornar un valor
+     * - true: Las funciones deben retornar explícitamente en todos los casos
+     * - Ayuda a prevenir bugs por valores de retorno faltantes
+     */
+    "noImplicitReturns": true,
+    
+    /**
+     * noImplicitOverride: Requiere la palabra clave 'override' al sobrescribir métodos
+     * - true: Previene sobrescrituras accidentales
+     */
+    "noImplicitOverride": true,
+    
+    /**
+     * noUnusedLocals: Marca error si hay variables locales no usadas
+     * - true: Ayuda a mantener el código limpio
+     */
+    "noUnusedLocals": true,
+    
+    /**
+     * noUnusedParameters: Marca error si hay parámetros no usados
+     * - true: Ayuda a mantener el código limpio
+     * - Puedes prefijar con _ para ignorar: function(_unusedParam) {}
+     */
+    "noUnusedParameters": true,
+    
+    /**
+     * noFallthroughCasesInSwitch: Previene casos fallthrough en switch
+     * - true: Requiere break/return en cada case
+     */
+    "noFallthroughCasesInSwitch": true,
+
+    // ============================================
+    // OPCIONES RECOMENDADAS
+    // ============================================
+    
+    /**
+     * strict: Habilita todas las verificaciones estrictas de tipo
+     * - true: Incluye: strictNullChecks, strictFunctionTypes, etc
+     * - Recomendado para proyectos nuevos para mayor seguridad de tipos
+     */
+    "strict": true,
+    
+    /**
+     * isolatedModules: Cada archivo debe poder compilarse independientemente
+     * - true: Requerido por herramientas como tsx, vite, etc
+     * - Previene ciertos tipos de imports que requieren análisis global
+     */
+    "isolatedModules": true,
+    
+    /**
+     * moduleDetection: Cómo detectar si un archivo es un módulo
+     * - "force": Trata todos los archivos como módulos
+     * - Útil para proyectos modernos que usan ES modules
+     */
+    "moduleDetection": "force",
+    
+    /**
+     * skipLibCheck: Omite la verificación de tipos en archivos .d.ts
+     * - true: Acelera la compilación (recomendado)
+     * - Los tipos de node_modules ya están verificados por sus autores
+     */
+    "skipLibCheck": true,
+  },
+  
+  // ============================================
+  // ARCHIVOS A INCLUIR/EXCLUIR
+  // ============================================
+  
+  /**
+   * include: Archivos y directorios a incluir en la compilación
+   * - Solo archivos dentro de src/ serán compilados
+   */
+  "include": ["src/**/*"],
+  
+  /**
+   * exclude: Archivos y directorios a excluir de la compilación
+   * - node_modules: Dependencias (no necesitan compilarse)
+   * - dist: Archivos ya compilados (evita compilaciones duplicadas)
+   */
+  "exclude": ["node_modules", "dist"]
+}

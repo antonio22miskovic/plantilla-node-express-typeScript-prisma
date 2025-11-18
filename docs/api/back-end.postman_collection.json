@@ -1,0 +1,531 @@
+{
+	"info": {
+		"_postman_id": "express-typescript-backend",
+		"name": "Back-end Express + TypeScript",
+		"description": "Colección completa de APIs para la plantilla Backend Express + TypeScript + Prisma + MySQL\n\n**Base URL**: `http://localhost:3000`\n\n**Variables de Entorno**:\n- `base_url`: http://localhost:3000\n- `access_token`: Token JWT de acceso (se actualiza automáticamente después del login)\n- `refresh_token`: Token JWT de refresco (se actualiza automáticamente después del login)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica que el servidor esté funcionando correctamente"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de verificación del estado del servidor"
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('access_token', jsonData.data.accessToken);",
+									"        pm.environment.set('refresh_token', jsonData.data.refreshToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!@#\",\n  \"name\": \"Usuario de Prueba\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registra un nuevo usuario en el sistema\n\n**Body requerido:**\n- `email`: Email del usuario (requerido, único)\n- `password`: Contraseña (requerido, mínimo 8 caracteres, debe incluir mayúsculas, minúsculas, números y caracteres especiales)\n- `name`: Nombre del usuario (opcional)\n\n**Respuesta exitosa (201):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Usuario registrado exitosamente\",\n  \"data\": {\n    \"user\": { \"id\", \"email\", \"name\", \"role\" },\n    \"accessToken\": \"...\",\n    \"refreshToken\": \"...\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('access_token', jsonData.data.accessToken);",
+									"        pm.environment.set('refresh_token', jsonData.data.refreshToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123!@#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Inicia sesión de un usuario existente\n\n**Body requerido:**\n- `email`: Email del usuario\n- `password`: Contraseña\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Inicio de sesión exitoso\",\n  \"data\": {\n    \"user\": { \"id\", \"email\", \"name\", \"role\" },\n    \"accessToken\": \"...\",\n    \"refreshToken\": \"...\"\n  }\n}\n```\n\n**Nota:** Los tokens se guardan automáticamente en las variables de entorno después del login."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('access_token', jsonData.data.accessToken);",
+									"        pm.environment.set('refresh_token', jsonData.data.refreshToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Refresca el access token usando un refresh token válido\n\n**Body requerido:**\n- `refreshToken`: Token de refresco obtenido en login/register\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Token actualizado exitosamente\",\n  \"data\": {\n    \"accessToken\": \"...\",\n    \"refreshToken\": \"...\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Obtiene la información del usuario autenticado\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Operación completada exitosamente\",\n  \"data\": {\n    \"user\": { \"id\", \"email\", \"name\", \"role\" }\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"Password123!@#\",\n  \"newPassword\": \"NewPassword123!@#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Cambia la contraseña del usuario autenticado\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Body requerido:**\n- `currentPassword`: Contraseña actual\n- `newPassword`: Nueva contraseña (mínimo 8 caracteres, debe incluir mayúsculas, minúsculas, números y caracteres especiales)\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"La contraseña ha sido cambiada exitosamente\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Solicita recuperación de contraseña\n\n**Body requerido:**\n- `email`: Email del usuario\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Si existe una cuenta con ese email, se ha enviado un enlace para restablecer la contraseña.\"\n}\n```\n\n**Nota:** En desarrollo, el token de reset se genera y se imprime en la consola del servidor. En producción debería enviarse por email."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"password\": \"NewPassword123!@#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Resetea la contraseña usando un token de recuperación\n\n**Body requerido:**\n- `token`: Token de recuperación obtenido por email (en desarrollo, desde la consola del servidor)\n- `password`: Nueva contraseña (mínimo 8 caracteres, debe incluir mayúsculas, minúsculas, números y caracteres especiales)\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"La contraseña ha sido restablecida exitosamente\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Cierra sesión e invalida el refresh token\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Sesión cerrada exitosamente\"\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticación y gestión de usuarios"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users?page=1&limit=10&email=&name=&orderBy=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número de página (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Elementos por página (default: 10)"
+								},
+								{
+									"key": "email",
+									"value": "",
+									"description": "Filtrar por email (búsqueda parcial)"
+								},
+								{
+									"key": "name",
+									"value": "",
+									"description": "Filtrar por nombre (búsqueda parcial)"
+								},
+								{
+									"key": "orderBy",
+									"value": "asc",
+									"description": "Ordenar por ID (asc/desc)"
+								},
+								{
+									"key": "orderByEmail",
+									"value": "",
+									"description": "Ordenar por email (asc/desc)"
+								},
+								{
+									"key": "orderByName",
+									"value": "",
+									"description": "Ordenar por nombre (asc/desc)"
+								}
+							]
+						},
+						"description": "Obtiene todos los usuarios con paginación y filtros\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Query params (opcionales):**\n- `page`: Número de página (default: 1)\n- `limit`: Elementos por página (default: 10)\n- `email`: Filtrar por email (búsqueda parcial)\n- `name`: Filtrar por nombre (búsqueda parcial)\n- `orderBy`: Ordenar por ID (asc/desc)\n- `orderByEmail`: Ordenar por email (asc/desc)\n- `orderByName`: Ordenar por nombre (asc/desc)\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Operación completada exitosamente\",\n  \"data\": {\n    \"data\": [...],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 100,\n      \"totalPages\": 10\n    }\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"1"
+							]
+						},
+						"description": "Obtiene un usuario por su ID\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Path params:**\n- `id`: ID del usuario\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Operación completada exitosamente\",\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"user@example.com\",\n    \"name\": \"Usuario\",\n    \"role\": { \"id\": 2, \"name\": \"user\" },\n    \"isActive\": true,\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"name\": \"Nuevo Usuario\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						},
+						"description": "Crea un nuevo usuario\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Body requerido:**\n- `email`: Email del usuario (requerido, único)\n- `name`: Nombre del usuario (opcional)\n\n**Respuesta exitosa (201):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Usuario creado exitosamente\",\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"newuser@example.com\",\n    \"name\": \"Nuevo Usuario\",\n    \"role\": { \"id\": 2, \"name\": \"user\" },\n    \"isActive\": true\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"updated@example.com\",\n  \"name\": \"Usuario Actualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"1"
+							]
+						},
+						"description": "Actualiza un usuario existente\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Path params:**\n- `id`: ID del usuario\n\n**Body (opcional):**\n- `email`: Nuevo email\n- `name`: Nuevo nombre\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Usuario actualizado exitosamente\",\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"updated@example.com\",\n    \"name\": \"Usuario Actualizado\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"1"
+							]
+						},
+						"description": "Elimina un usuario\n\n**Headers requeridos:**\n- `Authorization`: Bearer <access_token>\n\n**Path params:**\n- `id`: ID del usuario\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"success\": true,\n  \"message\": \"Usuario eliminado exitosamente\"\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de gestión de usuarios (todas las rutas requieren autenticación)"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

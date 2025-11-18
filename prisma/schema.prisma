@@ -1,0 +1,317 @@
+// ============================================
+// PRISMA SCHEMA - CONFIGURACIÓN DE BASE DE DATOS
+// ============================================
+// 
+// Este archivo define la estructura de tu base de datos usando Prisma.
+// Prisma es un ORM (Object-Relational Mapping) que te permite trabajar
+// con tu base de datos usando TypeScript de forma type-safe.
+//
+// Documentación: https://www.prisma.io/docs/concepts/components/prisma-schema
+// ============================================
+
+// ============================================
+// GENERADOR DE CLIENTE PRISMA
+// ============================================
+// 
+// El generador crea el cliente de Prisma que usarás en tu código TypeScript.
+// Este cliente se genera ejecutando: npm run prisma:generate
+//
+generator client {
+  // provider: Motor del cliente Prisma a generar
+  // - "prisma-client-js": Cliente JavaScript/TypeScript estándar (recomendado)
+  // - Alternativas: "prisma-client-py" (Python), etc.
+  provider = "prisma-client-js"
+  
+  // output: (Opcional) Directorio donde generar el cliente
+  // Por defecto: node_modules/.prisma/client
+  // Descomenta y ajusta si quieres un directorio personalizado:
+  // output   = "../src/generated/prisma"
+}
+
+// ============================================
+// CONFIGURACIÓN DE LA BASE DE DATOS
+// ============================================
+//
+// Define la conexión a tu base de datos y el proveedor (MySQL, PostgreSQL, etc)
+//
+datasource db {
+  // provider: Tipo de base de datos a usar
+  // Opciones comunes:
+  //   - "mysql": MySQL / MariaDB
+  //   - "postgresql": PostgreSQL
+  //   - "sqlite": SQLite (desarrollo)
+  //   - "mongodb": MongoDB
+  //   - "sqlserver": Microsoft SQL Server
+  provider = "mysql"
+  
+  // url: URL de conexión a la base de datos
+  // Se lee de la variable de entorno DATABASE_URL en el archivo .env
+  // Formato MySQL: mysql://usuario:contraseña@host:puerto/nombre_bd
+  // Ejemplo: mysql://root:password@localhost:3306/mi_proyecto
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MODELOS DE BASE DE DATOS
+// ============================================
+//
+// Los modelos definen las tablas de tu base de datos y sus relaciones.
+// Cada modelo se convierte en una tabla en la base de datos.
+//
+// CONVENCIONES:
+// - Los nombres de modelos deben estar en PascalCase (User, Post, etc)
+// - Los campos se convierten automáticamente a camelCase en el cliente (userId, createdAt)
+// - @id marca el campo como clave primaria
+// - @default(autoincrement()) crea un ID autoincremental
+// - @unique marca el campo como único en la base de datos
+// - @relation define relaciones entre modelos
+// - @db.VarChar(255) especifica el tipo de columna en la BD
+// - ? marca el campo como opcional (nullable)
+// - @default(now()) establece la fecha actual por defecto
+// - @updatedAt actualiza automáticamente la fecha al modificar
+
+// ============================================
+// MÓDULO: AUTENTICACIÓN Y USUARIOS
+// ============================================
+// Gestión de usuarios, autenticación, roles y permisos
+
+// ============================================
+// MODELO: Role (Rol)
+// ============================================
+// 
+// Representa un rol en el sistema (admin, user, moderator, etc).
+// Los roles tienen permisos asociados que definen qué acciones pueden realizar.
+//
+model Role {
+  // ID único del rol
+  id          Int      @id @default(autoincrement())
+  
+  // Nombre del rol (único, ej: "admin", "user", "moderator")
+  name        String   @unique
+  
+  // Descripción del rol (opcional)
+  description String?
+  
+  // Si el rol está activo
+  isActive    Boolean  @default(true)
+  
+  // Fecha de creación
+  createdAt   DateTime @default(now())
+  
+  // Fecha de última actualización
+  updatedAt   DateTime @updatedAt
+  
+  // ============================================
+  // RELACIONES
+  // ============================================
+  
+  // Usuarios que tienen este rol
+  users       User[]
+  
+  // Permisos asociados a este rol (relación muchos a muchos)
+  permissions RolePermission[]
+  
+  // Mapear el modelo a nombre de tabla en plural y minúsculas
+  @@map("roles")
+}
+
+// ============================================
+// MODELO: Permission (Permiso)
+// ============================================
+//
+// Representa un permiso específico en el sistema.
+// Los permisos definen acciones que se pueden realizar (ej: "users.create", "posts.delete").
+//
+model Permission {
+  // ID único del permiso
+  id          Int      @id @default(autoincrement())
+  
+  // Nombre del permiso (único, formato: "recurso.accion")
+  // Ejemplos: "users.create", "users.update", "posts.delete", "admin.manage"
+  name        String   @unique
+  
+  // Descripción del permiso (opcional)
+  description String?
+  
+  // Si el permiso está activo
+  isActive    Boolean  @default(true)
+  
+  // Fecha de creación
+  createdAt   DateTime @default(now())
+  
+  // Fecha de última actualización
+  updatedAt   DateTime @updatedAt
+  
+  // ============================================
+  // RELACIONES
+  // ============================================
+  
+  // Roles que tienen este permiso (relación muchos a muchos)
+  roles       RolePermission[]
+  
+  // Mapear el modelo a nombre de tabla en plural y minúsculas
+  @@map("permissions")
+}
+
+// ============================================
+// MODELO: RolePermission (Tabla Intermedia)
+// ============================================
+//
+// Tabla intermedia para la relación muchos a muchos entre Role y Permission.
+// Permite que un rol tenga múltiples permisos y un permiso pertenezca a múltiples roles.
+//
+model RolePermission {
+  // ID único
+  id           Int        @id @default(autoincrement())
+  
+  // Relación con Role
+  roleId       Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  // Relación con Permission
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  // Fecha de asignación
+  createdAt    DateTime   @default(now())
+  
+  // Constraint único: un rol no puede tener el mismo permiso dos veces
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  
+  // Mapear el modelo a nombre de tabla en plural y minúsculas (snake_case)
+  @@map("role_permissions")
+}
+
+// ============================================
+// MODELO: User (Usuario)
+// ============================================
+// 
+// Representa un usuario en el sistema.
+// Cada usuario tiene un rol que define sus permisos.
+//
+model User {
+  // ID único del usuario (clave primaria, autoincremental)
+  id      Int      @id @default(autoincrement())
+  
+  // Email del usuario (único, requerido)
+  // El constraint @unique previene emails duplicados
+  email   String   @unique
+  
+  // Nombre del usuario (opcional)
+  name    String?
+  
+  // ============================================
+  // CAMPOS DE AUTENTICACIÓN
+  // ============================================
+  
+  // Hash de la contraseña (nunca almacenar contraseñas en texto plano)
+  // Se usa Argon2 (argon2id) para generar el hash - algoritmo más seguro que bcrypt
+  // Argon2 es el ganador de la Password Hashing Competition y recomendado por OWASP/NIST
+  password String
+  
+  // Token de refresco para renovar el access token sin re-autenticarse
+  // Se almacena en la BD para poder invalidarlo si es necesario
+  // Usa @db.Text porque los tokens JWT pueden ser muy largos (>200 caracteres)
+  refreshToken String? @db.Text
+  
+  // Token para recuperación de contraseña (generado cuando se solicita reset)
+  // Usa @db.Text porque los tokens pueden ser largos
+  passwordResetToken String? @db.Text
+  
+  // Fecha de expiración del token de recuperación de contraseña
+  // Los tokens de reset expiran después de un tiempo (ej: 1 hora)
+  passwordResetExpires DateTime?
+  
+  // ============================================
+  // RELACIÓN CON ROLE
+  // ============================================
+  
+  // ID del rol del usuario (clave foránea)
+  // Por defecto se asigna el rol "user" (ID 2)
+  roleId  Int      @default(2)
+  
+  // Relación con Role
+  role    Role     @relation(fields: [roleId], references: [id])
+  
+  // Si el usuario está activo (puede ser desactivado sin eliminar)
+  isActive Boolean @default(true)
+  
+  // Fecha de creación del usuario
+  createdAt DateTime @default(now())
+  
+  // Fecha de última actualización (se actualiza automáticamente)
+  updatedAt DateTime @updatedAt
+  
+  // ============================================
+  // RELACIONES ADICIONALES
+  // ============================================
+  // 
+  // Agrega aquí las relaciones con otros modelos cuando los crees
+  // Ejemplo: orders Order[], comments Comment[], etc.
+  
+  @@index([roleId])
+  @@index([email])
+  
+  // Mapear el modelo a nombre de tabla en plural y minúsculas
+  @@map("users")
+}
+
+// ============================================
+// MÓDULOS ADICIONALES
+// ============================================
+// 
+// Agrega aquí tus nuevos modelos organizados por módulos.
+// Ejemplo de estructura:
+//
+// // ============================================
+// // MÓDULO: E-COMMERCE
+// // ============================================
+// model Product { ... }
+// model Order { ... }
+//
+// // ============================================
+// // MÓDULO: CONTENIDO
+// // ============================================
+// model Post { ... }
+// model Comment { ... }
+
+// ============================================
+// COMANDOS ÚTILES DE PRISMA
+// ============================================
+//
+// Después de modificar este schema, ejecuta:
+//
+// 1. Generar el cliente Prisma:
+//    npm run prisma:generate
+//
+// 2. Crear y aplicar migraciones (recomendado para producción):
+//    npm run prisma:migrate
+//    Esto crea archivos SQL en prisma/migrations/ y los aplica a la BD
+//
+// 3. Sincronizar schema sin migraciones (solo desarrollo):
+//    npm run prisma:push
+//    Útil para prototipado rápido, pero no crea historial de migraciones
+//
+// 4. Abrir Prisma Studio (interfaz visual para la BD):
+//    npm run prisma:studio
+//
+// 5. Resetear la base de datos (CUIDADO: elimina todos los datos):
+//    npx prisma migrate reset
+//
+// ============================================
+// MEJORES PRÁCTICAS
+// ============================================
+//
+// 1. Siempre usa migraciones en producción (prisma migrate)
+// 2. Nunca edites manualmente los archivos en prisma/migrations/
+// 3. Usa nombres descriptivos para modelos y campos
+// 4. Define relaciones explícitamente con @relation
+// 5. Usa @default() para valores por defecto
+// 6. Marca campos opcionales con ? cuando sea apropiado
+// 7. Usa @unique para campos que deben ser únicos (emails, slugs, etc)
+// 8. Considera agregar índices para campos usados frecuentemente en queries
+//    Ejemplo: @@index([email]) en el modelo User
+//
+// ============================================
