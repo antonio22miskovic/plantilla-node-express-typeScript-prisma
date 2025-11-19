@@ -41,8 +41,10 @@ node_modules/.prisma/
 # ============================================
 # LOGS
 # ============================================
+# Archivos de log generados por el sistema de logging
 logs/
 *.log
+*.log.gz
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -183,3 +185,10 @@ tramp
 .dynamodb/
 .tern-port
 .vscode-test
+
+# ============================================
+# ARCHIVOS SUBIDOS (STORAGE)
+# ============================================
+# Carpeta donde se almacenan los archivos subidos por los usuarios
+uploads/
+*.upload

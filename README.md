@@ -8,6 +8,9 @@ Plantilla profesional y escalable para proyectos backend con Node.js, Express, T
 - ✅ **TypeScript** con configuración estricta
 - ✅ **Prisma ORM** con MySQL
 - ✅ **JWT** preparado para autenticación
+- ✅ **Servicio de Email** con Nodemailer (SMTP configurable)
+- ✅ **Sistema de Storage** flexible (Local/S3) para archivos
+- ✅ **Sistema de Logging** con Winston (logs por día)
 - ✅ **Manejo centralizado de errores**
 - ✅ **Estructura modular y escalable**
 - ✅ **Código completamente comentado**
@@ -31,18 +34,68 @@ Ver [docs/architecture.md](./docs/architecture.md) para más detalles.
 npm install
 ```
 
-### 2. Configurar base de datos
+### 2. Configurar variables de entorno
 
 Crea un archivo `.env` en la raíz del proyecto con la siguiente configuración:
 
 ```env
+# Base de Datos
 DATABASE_URL="mysql://usuario:contraseña@localhost:3306/nombre_base_datos"
+
+# JWT - Autenticación
+JWT_SECRET=tu-clave-secreta-muy-segura-minimo-32-caracteres-cambiar-en-produccion
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Servidor
+PORT=3000
+NODE_ENV=development
+
+# Seed - Datos iniciales (Opcional)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin123!@#
+ADMIN_NAME=Administrator
+
+# Email - Envío de correos (Opcional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password
+EMAIL_FROM=noreply@example.com
+EMAIL_FROM_NAME=Sistema
+# URL del frontend (donde el usuario hará clic en los emails)
+# Ejemplos: http://localhost:5173 (Vite), http://localhost:3000 (Next.js), https://mi-app.com
+FRONTEND_URL=http://localhost:5173
+# URL del backend (opcional, se construye automáticamente si no se define)
+# Ejemplos: http://localhost:3000, https://api.mi-app.com
+BACKEND_URL=http://localhost:3000
 ```
 
-**Ejemplo:**
+**Ejemplo completo:**
 ```env
 DATABASE_URL="mysql://root:password@localhost:3306/mi_proyecto"
+JWT_SECRET=mi-clave-secreta-super-segura-de-al-menos-32-caracteres-123456789
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+PORT=3000
+NODE_ENV=development
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=mi-email@gmail.com
+SMTP_PASS=mi-app-password
+EMAIL_FROM=noreply@miempresa.com
+EMAIL_FROM_NAME=Mi Empresa
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3000
 ```
+
+**⚠️ IMPORTANTE:**
+- Genera una clave JWT segura con: `openssl rand -base64 32`
+- En producción, usa valores seguros y únicos para `JWT_SECRET`
+- Para Gmail, necesitas crear una "Contraseña de aplicación" (no uses tu contraseña normal)
+- El archivo `.env` NO debe subirse al repositorio (ya está en `.gitignore`)
 
 ### 3. Generar Prisma Client
 
@@ -185,6 +238,67 @@ El proyecto incluye configuración completa para JWT:
    ```
 
 Ver `src/config/jwt.config.ts` y `src/middleware/auth.middleware.ts` para más detalles.
+
+## 📧 Servicio de Email
+
+El proyecto incluye un servicio de email usando Nodemailer:
+
+1. **Configurar variables de entorno** (`.env`):
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=tu-email@gmail.com
+   SMTP_PASS=tu-app-password
+   EMAIL_FROM=noreply@example.com
+   EMAIL_FROM_NAME=Sistema
+   FRONTEND_URL=http://localhost:5173
+   BACKEND_URL=http://localhost:3000
+   ```
+
+2. **Usar el servicio**:
+   ```typescript
+   import { EmailService } from '../services/Email.service'
+   const emailService = new EmailService()
+   await emailService.sendPasswordResetEmail(email, token)
+   ```
+
+**Nota:** En desarrollo sin SMTP configurado, los emails se imprimen en consola. Ver `src/config/email.config.ts` y `src/services/Email.service.ts` para más detalles.
+
+## 📝 Sistema de Logging
+
+El proyecto incluye un sistema completo de logging usando Winston:
+
+1. **Configurar variables de entorno** (`.env`):
+   ```env
+   LOG_LEVEL=info
+   LOG_DIR=./logs
+   ```
+
+2. **Archivos de log generados**:
+   - `error-YYYY-MM-DD.log` - Solo errores críticos
+   - `combined-YYYY-MM-DD.log` - Todos los logs
+   - `exceptions-YYYY-MM-DD.log` - Excepciones no capturadas
+   - `rejections-YYYY-MM-DD.log` - Promesas rechazadas
+
+3. **Usar el logger**:
+   ```typescript
+   import { logger } from '../config/logger.config'
+   import { logError, logInfo } from '../utils/logger.util'
+   
+   logger.error('Error crítico', { error })
+   logError(error, { userId: 123, action: 'createUser' })
+   logInfo('Operación completada', { userId: 123 })
+   ```
+
+**Características:**
+- Logs organizados por día (un archivo por día)
+- Rotación automática de archivos
+- Compresión de archivos antiguos
+- Retención configurable (30 días por defecto)
+- Diferentes niveles: error, warn, info, debug
+
+Ver `src/config/logger.config.ts` y `src/utils/logger.util.ts` para más detalles.
 
 ## 📚 Documentación
 

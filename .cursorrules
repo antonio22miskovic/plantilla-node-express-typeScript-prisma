@@ -253,6 +253,23 @@ npm run prisma:migrate:deploy  # Aplicar migraciones pendientes
 - `docs/api/README.md` - Guía de uso de la colección de Postman
 - `README.md` - Guía de inicio rápido
 
+## 📧 Servicio de Email
+
+El proyecto incluye un servicio de email usando Nodemailer:
+
+- **Configuración**: `src/config/email.config.ts`
+- **Servicio**: `src/services/Email.service.ts`
+- **Variables de entorno**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `EMAIL_FROM_NAME`, `APP_URL`
+
+**Uso:**
+```typescript
+import { EmailService } from '../services/Email.service'
+const emailService = new EmailService()
+await emailService.sendPasswordResetEmail(email, token)
+```
+
+**En desarrollo sin SMTP configurado**: Los emails se imprimen en consola.
+
 ## ⚠️ Importante
 
 - **SIEMPRE** modifica `schema.prisma` antes de crear migraciones

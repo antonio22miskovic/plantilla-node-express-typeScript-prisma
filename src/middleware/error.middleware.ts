@@ -14,6 +14,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { HTTP_STATUS, HTTP_MESSAGES, PRISMA_ERROR_CODES } from '../constants'
 import { formatError } from '../utils'
+import { logError } from '../utils/logger.util'
 import type { ApiError } from '../types'
 
 /**
@@ -24,12 +25,18 @@ import type { ApiError } from '../types'
  */
 export function errorHandler(
   error: Error | ApiError,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  // Log del error (en producción, usar un servicio de logging)
-  console.error('Error:', error)
+  // Log del error con contexto
+  logError(error, {
+    method: req.method,
+    path: req.path,
+    statusCode: (error as ApiError & { statusCode?: number }).statusCode || 500,
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+  })
   
   // Manejar errores de Prisma
   if (isPrismaError(error)) {

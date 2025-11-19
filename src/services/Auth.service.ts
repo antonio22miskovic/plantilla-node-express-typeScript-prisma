@@ -19,6 +19,7 @@ import { hashPassword, comparePassword, generateResetToken, validatePasswordStre
 import { generateTokens, verifyToken, generateAccessToken } from '../config/jwt.config'
 import { HTTP_STATUS, HTTP_MESSAGES } from '../constants'
 import { db } from '../config/prisma'
+import { EmailService } from './Email.service'
 import type {
   RegisterInput,
   LoginInput,
@@ -32,9 +33,11 @@ import type {
 
 export class AuthService {
   private authRepository: AuthRepository
+  private emailService: EmailService
   
   constructor() {
     this.authRepository = new AuthRepository()
+    this.emailService = new EmailService()
   }
   
   /**
@@ -254,11 +257,18 @@ export class AuthService {
     // Guardar token en la BD
     await this.authRepository.updatePasswordResetToken(user.id, resetToken, resetExpires)
     
-    // TODO: Enviar email con el token
-    // En producción, aquí deberías enviar un email con el token
-    // Ejemplo: await emailService.sendPasswordResetEmail(user.email, resetToken)
-    
-    console.log(`Password reset token for ${user.email}: ${resetToken}`)
+    // Enviar email con el token de recuperación
+    try {
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken)
+    } catch (error) {
+      // Si falla el envío de email, loguear pero no fallar la operación
+      // (por seguridad, siempre retornamos el mismo mensaje)
+      console.error('Error al enviar email de recuperación de contraseña:', error)
+      // En desarrollo, también imprimir el token en consola como fallback
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Password reset token for ${user.email}: ${resetToken}`)
+      }
+    }
     
     return {
       message: 'Si existe una cuenta con ese email, se ha enviado un enlace para restablecer la contraseña.',

@@ -43,21 +43,52 @@ npm install
 
 ### 2. Configurar Variables de Entorno
 
-Crea un archivo `.env` en la raíz:
+Crea un archivo `.env` en la raíz del proyecto. Puedes copiar el archivo `.env.example` como base:
+
+```bash
+cp .env.example .env
+```
+
+Luego edita el archivo `.env` con tus valores:
 
 ```env
 # Base de Datos
 DATABASE_URL="mysql://usuario:contraseña@localhost:3306/nombre_bd"
 
-# JWT
-JWT_SECRET=tu-clave-secreta-muy-segura-minimo-32-caracteres
+# JWT - Autenticación
+JWT_SECRET=tu-clave-secreta-muy-segura-minimo-32-caracteres-cambiar-en-produccion
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
 # Servidor
 PORT=3000
 NODE_ENV=development
+
+# Seed - Datos iniciales (Opcional)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin123!@#
+ADMIN_NAME=Administrator
+
+# Email - Envío de correos (Opcional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password
+EMAIL_FROM=noreply@example.com
+EMAIL_FROM_NAME=Sistema
+# URL del frontend (donde el usuario hará clic en los emails)
+FRONTEND_URL=http://localhost:5173
+# URL del backend (opcional, se construye automáticamente si no se define)
+BACKEND_URL=http://localhost:3000
 ```
+
+**⚠️ IMPORTANTE:**
+- Genera una clave JWT segura con: `openssl rand -base64 32`
+- En producción, usa valores seguros y únicos para `JWT_SECRET`
+- Para Gmail, necesitas crear una "Contraseña de aplicación" (no uses tu contraseña normal)
+- Si no configuras SMTP, en desarrollo los emails se imprimirán en consola
+- El archivo `.env` NO debe subirse al repositorio (ya está en `.gitignore`)
 
 ### 3. Crear Base de Datos y Aplicar Migraciones
 
